@@ -1,0 +1,106 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <stdexcept>
+
+using namespace std;
+
+// Base Class demonstrating Encapsulation
+class Person {
+protected:
+    string name;
+    int id;
+public:
+    Person(string n = "", int i = 0) : name(n), id(i) {}
+    virtual ~Person() {} // Virtual Destructor
+
+    // Pure virtual function for Polymorphism
+    virtual void displayRole() const = 0;
+};
+
+// Inheritance: Student derived from Person
+class Student : public Person {
+private:
+    double marks;
+public:
+    Student(string n = "", int i = 0, double m = 0.0) : Person(n, i), marks(m) {}
+
+    void displayRole() const {
+        cout << "[Role: Student] Name: " << name << " | ID: " << id << " | Marks: " << marks << endl;
+    }
+
+    void saveToFile() {
+        ofstream outFile("students.txt", ios::app);
+        if (outFile.is_open()) {
+            outFile << id << " " << name << " " << marks << endl;
+            outFile.close();
+        }
+    }
+};
+
+// Exception Handling for ID Validation
+void validateID(int id) {
+    if (id <= 0) {
+        throw invalid_argument("Error: ID must be a positive integer.");
+    }
+}
+
+class SystemManager {
+public:
+    void addStudentRecord() {
+        string name;
+        int id;
+        double marks;
+
+        try {
+            cout << "Enter Student Name: ";
+            cin >> name;
+            cout << "Enter Student ID: ";
+            cin >> id;
+            validateID(id);
+            cout << "Enter Marks: ";
+            cin >> marks;
+
+            Student s(name, id, marks);
+            s.saveToFile();
+            cout << "Record saved successfully!\n";
+        }
+        catch (const invalid_argument& e) {
+            cout << e.what() << endl;
+        }
+    }
+
+    void viewAllRecords() {
+        ifstream inFile("students.txt");
+        int id;
+        string name;
+        double marks;
+
+        cout << "\n--- Student Database ---\n";
+        while (inFile >> id >> name >> marks) {
+            // Using Polymorphism via pointer
+            Person* p = new Student(name, id, marks);
+            p->displayRole();
+            delete p;
+        }
+        inFile.close();
+    }
+};
+
+int main() {
+    SystemManager sys;
+    int choice;
+
+    while (true) {
+        cout << "\n1. Add Student\n2. View Records\n3. Exit\nEnter Choice: ";
+        cin >> choice;
+
+        if (choice == 1) sys.addStudentRecord();
+        else if (choice == 2) sys.viewAllRecords();
+        else if (choice == 3) break;
+        else cout << "Invalid choice!\n";
+    }
+
+    return 0;
+}
